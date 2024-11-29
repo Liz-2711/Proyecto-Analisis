@@ -1,17 +1,23 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import GraphColoring from "./pages/coloringGrafo";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+// Placeholder for other algorithm components
+const OtherAlgorithm1 = () => <h1>Other Algorithm 1 - Coming Soon!</h1>;
+const OtherAlgorithm2 = () => <h1>Other Algorithm 2 - Coming Soon!</h1>;
+
+const App = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/graph-coloring" element={<GraphColoring />} />
+      <Route path="/other-algorithm-1" element={<OtherAlgorithm1 />} />
+      <Route path="/other-algorithm-2" element={<OtherAlgorithm2 />} />
+    </Routes>
+  </BrowserRouter>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
