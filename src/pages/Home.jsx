@@ -10,7 +10,7 @@ const Home = () => {
       <button onClick={() => navigate("/graph-coloring")}>
         Graph Coloring (Current)
       </button>
-      <button onClick={() => navigate("/other-algorithm-1")}>
+      <button onClick={() => navigate("/knapsack")}>
         Other Algorithm 1
       </button>
       <button onClick={() => navigate("/other-algorithm-2")}>
