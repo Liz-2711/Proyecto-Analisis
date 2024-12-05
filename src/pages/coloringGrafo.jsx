@@ -1,114 +1,233 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { ForceGraph3D } from "react-force-graph";
-import * as THREE from "three";
+import React, { useState, useRef, useEffect } from "react";
+import ForceGraph3D from "react-force-graph-3d";
+import { InputNumber, Button, Select } from "antd";
+import { SketchPicker } from "react-color";
+import ExecutionTimeChart from "../Componentes/ExecutionTime";
 
-const GraphColoring = () => {
-  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
-  const [steps, setSteps] = useState([]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [numNodes, setNumNodes] = useState(5);
-  const [numColors, setNumColors] = useState(3);
-  const [selectedColors, setSelectedColors] = useState([]);
+const { Option } = Select;
 
-  useEffect(() => {
-    const defaultColors = Array.from({ length: numColors }, (_, index) =>
-      `hsl(${(index * 360) / numColors}, 100%, 50%)`
-    );
-    setSelectedColors(defaultColors);
-  }, [numColors]);
+const ColoringGraph = () => {
+    const [numNodes, setNumNodes] = useState(5);
+    const [nodes, setNodes] = useState([]);
+    const [edges, setEdges] = useState([]);
+    const [selectedNode, setSelectedNode] = useState(null);
+    const [graphData, setGraphData] = useState(null);
+    const [executionTime, setExecutionTime] = useState(null);
+    const [executionTimes, setExecutionTimes] = useState([]);
+    const [numColors, setNumColors] = useState(3);
+    const [colorType, setColorType] = useState("predefined");
+    const [steps, setSteps] = useState([]);
+    const [currentStepIndex, setCurrentStepIndex] = useState(-1);
+    const [colorPalette, setColorPalette] = useState([
+        "#FF0000", // Red
+        "#00FF00", // Green
+        "#0000FF", // Blue
+    ]);
+    const graphRef = useRef();
 
-  const fetchGraphData = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/graph", {
-        params: { numNodes, numColors },
-      });
-      setGraphData(response.data);
-      setSteps(response.data.steps);
-      setCurrentStep(0); // Reset to the first step
-    } catch (error) {
-      console.error("Error fetching graph data:", error.response?.data || error.message);
-      alert("Failed to fetch graph data. Please check the backend.");
-    }
-  };
+    // Add nodes dynamically to the graph
+    const handleAddNodes = () => {
+        const newNodes = Array.from({ length: numNodes }, (_, i) => ({
+            id: `Node ${i}`,
+            color: "gray", // Default color
+        }));
+        setNodes(newNodes);
+        setEdges([]);
+        setSelectedNode(null);
+        setGraphData(null);
+        setSteps([]);
+        setCurrentStepIndex(-1);
+    };
 
-  const handleColorChange = (index, newColor) => {
-    const updatedColors = [...selectedColors];
-    updatedColors[index] = newColor;
-    setSelectedColors(updatedColors);
-  };
+    // Handle user click on a node to create edges
+    const handleNodeClick = (nodeId) => {
+        if (selectedNode === null) {
+            setSelectedNode(nodeId);
+        } else {
+            if (
+                selectedNode !== nodeId &&
+                !edges.some(([a, b]) => (a === selectedNode && b === nodeId) || (a === nodeId && b === selectedNode))
+            ) {
+                setEdges((prevEdges) => [...prevEdges, [selectedNode, nodeId]]);
+            }
+            setSelectedNode(null);
+        }
+    };
 
-  return (
-    <div style={{ textAlign: "center", margin: "20px" }}>
-      <h1>Graph Coloring Visualization</h1>
-      <div>
-        <label>
-          Number of Nodes:{" "}
-          <input
-            type="number"
-            value={numNodes}
-            onChange={(e) => setNumNodes(Number(e.target.value))}
-            min="1"
-          />
-        </label>
-        <br />
-        <label>
-          Number of Colors:{" "}
-          <input
-            type="number"
-            value={numColors}
-            onChange={(e) => setNumColors(Number(e.target.value))}
-            min="1"
-          />
-        </label>
-        <br />
-        <div>
-          <h3>Choose Colors:</h3>
-          {Array.from({ length: numColors }).map((_, index) => (
-            <input
-              key={index}
-              type="color"
-              value={selectedColors[index] || "#ffffff"}
-              onChange={(e) => handleColorChange(index, e.target.value)}
-            />
-          ))}
+    // Handle color changes for each node
+    const handleColorChange = (color, index) => {
+        const updatedPalette = [...colorPalette];
+        updatedPalette[index] = color.hex;
+        setColorPalette(updatedPalette);
+    };
+
+    // Generate graph coloring
+    const handleGenerateGraph = async () => {
+        try {
+            const formattedEdges = edges.map(([from, to]) => [
+                parseInt(from.replace("Node ", "")),
+                parseInt(to.replace("Node ", "")),
+            ]);
+
+            const response = await fetch("http://localhost:5000/graph", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    numNodes: nodes.length,
+                    numColors,
+                    edges: formattedEdges,
+                    colors: colorPalette,
+                }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                const updatedNodes = nodes.map((node, i) => ({
+                    ...node,
+                    color: "gray",
+                }));
+
+                setNodes(updatedNodes);
+                setGraphData(data);
+                setExecutionTime(data.executionTime);
+                setSteps(data.steps);
+                setCurrentStepIndex(0);
+
+                // Add execution time for comparison
+                setExecutionTimes((prev) => [
+                    ...prev,
+                    { id: `Run ${prev.length + 1}`, time: parseFloat(data.executionTime) },
+                ]);
+            } else {
+                throw new Error(data.error || "Something went wrong.");
+            }
+        } catch (err) {
+            console.error("Error:", err.message);
+            alert(`Error generating graph coloring: ${err.message}`);
+        }
+    };
+
+    // Update node colors dynamically for the current step
+    useEffect(() => {
+        if (currentStepIndex >= 0 && steps.length > 0) {
+            const currentStep = steps[currentStepIndex];
+            const updatedNodes = nodes.map((node) => {
+                if (node.id === `Node ${currentStep.vertex}`) {
+                    return { ...node, color: currentStep.color };
+                }
+                return node;
+            });
+            setNodes(updatedNodes);
+
+            // Refresh the graph to apply color changes
+            if (graphRef.current) {
+                graphRef.current.refresh();
+            }
+        }
+    }, [currentStepIndex, steps]);
+
+    return (
+        <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
+            <h1>3D Graph Coloring</h1>
+            <div style={{ marginBottom: "20px" }}>
+                <InputNumber
+                    min={1}
+                    placeholder="Number of Nodes"
+                    value={numNodes}
+                    onChange={(value) => setNumNodes(value)}
+                    style={{ marginRight: "10px" }}
+                />
+                <Button type="primary" onClick={handleAddNodes}>
+                    Add Nodes
+                </Button>
+            </div>
+
+            <div style={{ marginBottom: "20px" }}>
+                <InputNumber
+                    min={1}
+                    placeholder="Number of Colors"
+                    value={numColors}
+                    onChange={(value) => {
+                        setNumColors(value);
+                        setColorPalette(
+                            Array.from({ length: value }, (_, i) => colorPalette[i] || "#FFFFFF")
+                        );
+                    }}
+                    style={{ marginRight: "10px" }}
+                />
+                <Select value={colorType} onChange={(value) => setColorType(value)} style={{ width: 200 }}>
+                    <Option value="predefined">Predefined Colors</Option>
+                    <Option value="custom">Custom Colors</Option>
+                </Select>
+            </div>
+
+            <div>
+                <h3>Color Palette</h3>
+                {Array.from({ length: numColors }, (_, i) => (
+                    <div key={i} style={{ marginBottom: "10px" }}>
+                        <SketchPicker
+                            color={colorPalette[i]}
+                            onChange={(color) => handleColorChange(color, i)}
+                        />
+                        <p>Color {i + 1}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ height: "500px", marginTop: "20px" }}>
+                <ForceGraph3D
+                    ref={graphRef}
+                    graphData={{
+                        nodes,
+                        links: edges.map(([from, to]) => ({
+                            source: from,
+                            target: to,
+                        })),
+                    }}
+                    nodeLabel="id"
+                    nodeColor={(node) => node.color}
+                    linkWidth={2}
+                    onNodeClick={(node) => handleNodeClick(node.id)}
+                />
+            </div>
+
+            <div style={{ marginTop: "20px" }}>
+                <Button type="primary" onClick={handleGenerateGraph}>
+                    Generate Coloring
+                </Button>
+            </div>
+
+            {steps.length > 0 && (
+                <div style={{ marginTop: "20px" }}>
+                    <h3>Step-by-Step Visualization</h3>
+                    <p>
+                        {`Step ${currentStepIndex + 1}: Vertex ${
+                            steps[currentStepIndex]?.vertex
+                        } was assigned color ${
+                            steps[currentStepIndex]?.color
+                        }.`}
+                    </p>
+                    <div>
+                        <Button
+                            disabled={currentStepIndex <= 0}
+                            onClick={() => setCurrentStepIndex((prev) => prev - 1)}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            disabled={currentStepIndex >= steps.length - 1}
+                            onClick={() => setCurrentStepIndex((prev) => prev + 1)}
+                            style={{ marginLeft: "10px" }}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            <ExecutionTimeChart executionTimes={executionTimes} />
         </div>
-        <button onClick={fetchGraphData}>Generate Graph</button>
-      </div>
-      <div>
-        <h3>
-          Step: {currentStep + 1} / {steps.length}
-        </h3>
-        <input
-          type="range"
-          min="0"
-          max={steps.length - 1}
-          value={currentStep}
-          onChange={(e) => setCurrentStep(Number(e.target.value))}
-        />
-      </div>
-      <ForceGraph3D
-        graphData={{
-          nodes: graphData.nodes.map((node) => ({
-            ...node,
-            color: selectedColors[steps[currentStep]?.result[parseInt(node.id.split(" ")[1], 10)] || 0],
-          })),
-          links: graphData.links,
-        }}
-        nodeAutoColorBy="group"
-        nodeThreeObject={(node) => {
-          const sprite = new THREE.Sprite(
-            new THREE.SpriteMaterial({
-              color: node.color,
-            })
-          );
-          sprite.scale.set(8, 8, 1);
-          return sprite;
-        }}
-        linkWidth={2}
-      />
-    </div>
-  );
+    );
 };
 
-export default GraphColoring;
+export default ColoringGraph;
