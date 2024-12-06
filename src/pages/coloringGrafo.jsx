@@ -3,8 +3,10 @@ import ForceGraph3D from "react-force-graph-3d";
 import { InputNumber, Button, Select } from "antd";
 import { SketchPicker } from "react-color";
 import ExecutionTimeChart from "../Componentes/ExecutionTime";
-
+import { Layout, Row, Col } from "antd";
+const { Header, Content } = Layout;
 const { Option } = Select;
+
 
 const ColoringGraph = () => {
     const [numNodes, setNumNodes] = useState(5);
@@ -162,33 +164,58 @@ const ColoringGraph = () => {
             </div>
 
             <div>
-                <h3>Color Palette</h3>
-                {Array.from({ length: numColors }, (_, i) => (
-                    <div key={i} style={{ marginBottom: "10px" }}>
-                        <SketchPicker
-                            color={colorPalette[i]}
-                            onChange={(color) => handleColorChange(color, i)}
-                        />
-                        <p>Color {i + 1}</p>
-                    </div>
-                ))}
+    <h3>Color Palette</h3>
+    <div
+        style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "20px",
+            justifyContent: "space-between", // Ensures alignment and spacing
+        }}
+    >
+        {Array.from({ length: numColors }, (_, i) => (
+            <div
+                key={i}
+                style={{
+                    flex: "1 1 calc(33.33% - 20px)", // 3 per row with spacing
+                    maxWidth: "calc(33.33% - 20px)", // Ensure max width aligns with flex
+                    marginBottom: "20px",
+                }}
+            >
+                <SketchPicker
+                    color={colorPalette[i]}
+                    onChange={(color) => handleColorChange(color, i)}
+                />
+                <p style={{ textAlign: "center" }}>Color {i + 1}</p>
             </div>
+        ))}
+    </div>
+</div>
+
 
             <div style={{ height: "500px", marginTop: "20px" }}>
                 <ForceGraph3D
-                    ref={graphRef}
-                    graphData={{
-                        nodes,
-                        links: edges.map(([from, to]) => ({
-                            source: from,
-                            target: to,
-                        })),
-                    }}
-                    nodeLabel="id"
-                    nodeColor={(node) => node.color}
-                    linkWidth={2}
-                    onNodeClick={(node) => handleNodeClick(node.id)}
-                />
+    ref={graphRef}
+    graphData={{
+        nodes,
+        links: edges.map(([from, to]) => ({
+            source: from,
+            target: to,
+        })),
+    }}
+    nodeLabel="id"
+    nodeColor={(node) => node.color}
+    linkWidth={2}
+    onNodeClick={(node) => handleNodeClick(node.id)}
+    nodeRelSize={4} // Node size
+    d3AlphaDecay={0.05} // Slow down simulation for better layout
+    d3VelocityDecay={0.3} // Add drag to stabilize nodes
+    d3ForceConfig={{
+        charge: { strength: -20 }, // Make nodes less repulsive
+        link: { distance: 50 },   // Bring connected nodes closer
+    }}
+/>
+
             </div>
 
             <div style={{ marginTop: "20px" }}>
