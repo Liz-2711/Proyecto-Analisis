@@ -16,6 +16,9 @@ const Home = () => {
       <button onClick={() => navigate("/other-algorithm-2")}>
         Other Algorithm 2
       </button>
+      <button onClick={() => navigate("/travelling-salesman")}>
+        Travelling Salesman
+      </button>
     </div>
   );
 };

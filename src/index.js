@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import GraphColoring from "./pages/coloringGrafo";
+import TravellingSalesman from "./pages/TravellingSalesman"; 
 
 // Placeholder for other algorithm components
 const OtherAlgorithm1 = () => <h1>Other Algorithm 1 - Coming Soon!</h1>;
@@ -15,6 +16,7 @@ const App = () => (
       <Route path="/graph-coloring" element={<GraphColoring />} />
       <Route path="/other-algorithm-1" element={<OtherAlgorithm1 />} />
       <Route path="/other-algorithm-2" element={<OtherAlgorithm2 />} />
+      <Route path="/travelling-salesman" element={<TravellingSalesman />} />
     </Routes>
   </BrowserRouter>
 );
