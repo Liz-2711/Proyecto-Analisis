@@ -1,9 +1,9 @@
 import React from "react";
 import { Breadcrumb, Layout, Menu, Card, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
-//import graphColoringImage from "./Imagenes/Color.png"; // Import the local images
-//import algorithm2Image from "./Imagenes/Knack.png";
-//import algorithm3Image from "./Imagenes/Traveller.jpg";
+import graphColoringImage from "./Imagenes/Color.png"; // Import the local images
+import algorithm2Image from "./Imagenes/Knack.png";
+import algorithm3Image from "./Imagenes/Traveller.jpg";
 
 const { Header, Content, Footer } = Layout;
 
@@ -14,20 +14,20 @@ const Home = () => {
   const algorithms = [
     {
       title: "Coloreado de Grafos",
-      //image: graphColoringImage,
+      image: graphColoringImage,
       description: "Asignación de colores a los nodos de un grafo de forma que dos nodos adyacentes no compartan el mismo color.",
       route: "/graph-coloring",
     },
     {
-      title: "Knapsack",
-      //image: algorithm2Image,
+      title: "Algoritmo 2",
+      image: algorithm2Image,
       description:
         "Determina el subconjunto de elementos que maximiza el valor total sin exceder una capacidad dada.",
       route: "/knapsack",
     },
     {
       title: "Problema del Viajante (Travelling Salesman)",
-      //image: algorithm3Image,
+      image: algorithm3Image,
       description:
         "Encuentra la ruta más corta que permite a un viajante visitar todas las ciudades y regresar al punto inicial.",
       route: "/travelling-salesman",
