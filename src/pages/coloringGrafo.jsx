@@ -129,7 +129,8 @@ const ColoringGraph = () => {
     }, [currentStepIndex, steps]);
 
     return (
-        <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
+        <div style={{ padding: "20px", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>
+
             <h1>3D Graph Coloring</h1>
             <div style={{ marginBottom: "20px" }}>
                 <InputNumber
@@ -174,14 +175,14 @@ const ColoringGraph = () => {
         }}
     >
         {Array.from({ length: numColors }, (_, i) => (
-            <div
-                key={i}
-                style={{
-                    flex: "1 1 calc(33.33% - 20px)", // 3 per row with spacing
-                    maxWidth: "calc(33.33% - 20px)", // Ensure max width aligns with flex
-                    marginBottom: "20px",
-                }}
-            >
+        <div
+            key={i}
+            style={{
+                flex: "1 1 20%",
+                maxWidth: "20%", 
+                marginBottom: "20px",
+            }}
+        >
                 <SketchPicker
                     color={colorPalette[i]}
                     onChange={(color) => handleColorChange(color, i)}
@@ -196,6 +197,8 @@ const ColoringGraph = () => {
             <div style={{ height: "500px", marginTop: "20px" }}>
                 <ForceGraph3D
     ref={graphRef}
+    width={800} 
+    height={500}
     graphData={{
         nodes,
         links: edges.map(([from, to]) => ({

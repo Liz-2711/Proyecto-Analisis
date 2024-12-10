@@ -19,7 +19,7 @@ const Home = () => {
       route: "/graph-coloring",
     },
     {
-      title: "Algoritmo 2",
+      title: "Knapsack",
       image: algorithm2Image,
       description:
         "Determina el subconjunto de elementos que maximiza el valor total sin exceder una capacidad dada.",
