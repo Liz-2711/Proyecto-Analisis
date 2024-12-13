@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import GraphColoring from "./pages/coloringGrafo";
 import Knapsack from "./pages/knapsack";
+import TravellingSalesman from "./pages/TravelingSalesman";
 
 
 // Placeholder for other algorithm components
@@ -16,7 +17,7 @@ const App = () => (
       <Route path="/" element={<Home />} />
       <Route path="/graph-coloring" element={<GraphColoring />} />
       <Route path="/knapsack" element={<Knapsack />} />
-      <Route path="/other-algorithm-2" element={<OtherAlgorithm2 />} />
+      <Route path="/travelling-salesman" element={<TravellingSalesman />} />
     </Routes>
   </BrowserRouter>
 );
